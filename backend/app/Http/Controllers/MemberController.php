@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Http\Controllers; // [cite: 330]
+namespace App\Http\Controllers;
 
-use App\Models\Member; // [cite: 331]
-use Illuminate\Http\Request; // [cite: 332]
+use App\Models\Member;
+use Illuminate\Http\Request;
 
-class MemberController extends Controller // [cite: 333-334]
+class MemberController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return response()->json(Member::all(), 200); // [cite: 336-337]
+        return response()->json(Member::all(), 200);
     }
 
     /**
@@ -21,14 +21,14 @@ class MemberController extends Controller // [cite: 333-334]
     public function store(Request $request)
     {
         // Validasi input
-        $request->validate([ // [cite: 340]
-            'name' => 'required', // [cite: 341]
-            'email' => 'required|email|unique:members', // [cite: 342]
-            'phone' => 'required', // [cite: 343]
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:members',
+            'phone' => 'required',
         ]);
 
-        $member = Member::create($request->all()); // [cite: 345]
-        return response()->json($member, 201); // [cite: 346]
+        $member = Member::create($request->all());
+        return response()->json($member, 201);
     }
 
     /**
@@ -36,8 +36,8 @@ class MemberController extends Controller // [cite: 333-334]
      */
     public function show($id)
     {
-        $member = Member::findOrFail($id); // [cite: 349]
-        return response()->json($member, 200); // [cite: 350]
+        $member = Member::findOrFail($id);
+        return response()->json($member, 200);
     }
 
     /**
@@ -45,9 +45,9 @@ class MemberController extends Controller // [cite: 333-334]
      */
     public function update(Request $request, $id)
     {
-        $member = Member::findOrFail($id); // [cite: 353]
-        $member->update($request->all()); // [cite: 354]
-        return response()->json($member, 200); // [cite: 355]
+        $member = Member::findOrFail($id);
+        $member->update($request->all());
+        return response()->json($member, 200);
     }
 
     /**
@@ -55,7 +55,7 @@ class MemberController extends Controller // [cite: 333-334]
      */
     public function destroy($id)
     {
-        Member::destroy($id); // [cite: 358]
-        return response()->json(null, 204); // [cite: 359]
+        Member::destroy($id);
+        return response()->json(null, 204);
     }
 }

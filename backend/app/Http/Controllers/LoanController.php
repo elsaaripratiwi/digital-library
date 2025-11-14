@@ -3,41 +3,79 @@
 namespace App\Http\Controllers;
 
 use App\Models\Loan;
+use App\Models\Book;
+use App\Models\Member;
 use Illuminate\Http\Request;
+use App\Http\Resources\LoanResource;
+use Illuminate\Validation\ValidationException;
 
 class LoanController extends Controller
 {
+
     public function index()
     {
-        return response()->json(Loan::all(), 200);
+        $loans = Loan::with(['member', 'book'])->get();
+        return LoanResource::collection($loans);
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'member_id' => 'required|exists:members,id',
-            'book_id' => 'required|exists:books,id',
+        $validatedData = $request->validate([
+            'member_email' => 'required|email|exists:members,email',
+            'book_title' => 'required|string|exists:books,title',
             'loan_date' => 'required|date',
-            'return_date' => 'nullable|date',
+            'return_date' => 'nullable|date|after_or_equal:loan_date',
         ]);
 
-        $loan = Loan::create($request->all());
-        return response()->json($loan, 201);
+        // 1. Cari Member ID berdasarkan email
+        $member = Member::where('email', $validatedData['member_email'])->first();
+
+        // 2. Cari Book ID berdasarkan title
+        $book = Book::where('title', $validatedData['book_title'])->first();
+
+        // 3. Buat Peminjaman (Loan) menggunakan ID yang ditemukan
+        $loan = Loan::create([
+            'member_id' => $member->id,
+            'book_id' => $book->id,
+            'loan_date' => $validatedData['loan_date'],
+            'return_date' => $validatedData['return_date'] ?? null,
+        ]);
+
+        // Muat relasi agar bisa ditampilkan di resource
+        $loan->load(['member', 'book']);
+
+        // Kembalikan JSON yang sudah diformat
+        return new LoanResource($loan);
     }
 
     public function show($id)
     {
-        $loan = Loan::findOrFail($id);
-        return response()->json($loan, 200);
+        // Ambil satu Peminjaman, sertakan relasi
+        $loan = Loan::with(['member', 'book'])->findOrFail($id);
+
+        //LoanResource untuk memformat JSON
+        return new LoanResource($loan);
     }
 
     public function update(Request $request, $id)
     {
         $loan = Loan::findOrFail($id);
-        $loan->update($request->all());
-        return response()->json($loan, 200);
-    }
 
+        // Untuk update, kita hanya izinkan update return_date
+        $validatedData = $request->validate([
+            'return_date' => 'required|date|after_or_equal:loan_date',
+        ]);
+
+        $loan->update([
+            'return_date' => $validatedData['return_date'],
+        ]);
+
+        // Muat relasi agar bisa ditampilkan di resource
+        $loan->load(['member', 'book']);
+
+        // Kembalikan JSON yang sudah diformat
+        return new LoanResource($loan);
+    }
     public function destroy($id)
     {
         Loan::destroy($id);

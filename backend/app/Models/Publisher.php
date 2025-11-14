@@ -4,15 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany; // Tambahkan ini
+use App\Models\Book; // Tambahkan ini
 
 class Publisher extends Model
 {
-    use HasFactory;
+   use HasFactory;
+    
+    protected $fillable = ['name'];
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
+     * Definisi relasi: Satu Publisher memiliki banyak Books.
+     * Menggunakan HasMany.
      */
-    protected $fillable = ['name']; // [cite: 374]
+    public function books(): HasMany
+    {
+        return $this->hasMany(Book::class);
+    } 
 }
